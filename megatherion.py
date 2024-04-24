@@ -84,7 +84,7 @@ class Column(MutableSequence):  # implement MutableSequence (some method are mix
                       f"{width}s" if self.dtype == Type.String else f"-{width}.2g")
 
 
-class Dataframe:
+class DataFrame:
     def __init__(self, columns: Dict[str, Column]):
         """
         :param columns: columns of dataframe (key: name of dataframe),
@@ -126,10 +126,10 @@ class Dataframe:
     def append_row(self, row: Iterable) -> None:
         ...
 
-    def filter(self, col_name:str, predicate: Callable[[Union[int, str]], bool]) -> 'Dataframe':
+    def filter(self, col_name:str, predicate: Callable[[Union[int, str]], bool]) -> 'DataFrame':
         ...
 
-    def sort(self, col_name:str, ascending=True) -> 'Dataframe':
+    def sort(self, col_name:str, ascending=True) -> 'DataFrame':
         ...
 
     def describe(self) -> str:
@@ -139,8 +139,8 @@ class Dataframe:
         """
         ...
 
-    def inner_join(self, other: 'Dataframe', self_key_column: str,
-                   other_key_column: str) -> 'Dataframe':
+    def inner_join(self, other: 'DataFrame', self_key_column: str,
+                   other_key_column: str) -> 'DataFrame':
         """
             Inner join between self and other dataframe with join predicate
             `self.key_column == other.key_column`.
@@ -151,11 +151,11 @@ class Dataframe:
         ...
 
     @staticmethod
-    def read_csv(path: Union[str, Path]) -> 'Dataframe':
+    def read_csv(path: Union[str, Path]) -> 'DataFrame':
         return CSVReader(path).read()
 
     @staticmethod
-    def read_json(path: Union[str, Path]) -> 'Dataframe':
+    def read_json(path: Union[str, Path]) -> 'DataFrame':
         return JSONReader(path).read()
 
 
@@ -163,12 +163,12 @@ class Reader(ABC):
     def __init__(self, path: Union[Path, str]):
         self.path = Path(path)
     @abstractmethod
-    def read(self) -> 'Dataframe':
+    def read(self) -> 'DataFrame':
         raise NotImplemented("Abstract method")
 
 
 class JSONReader(Reader):
-    def read(self) -> 'Dataframe':
+    def read(self) -> 'DataFrame':
         with open(self.path, "rt") as f:
             json = load(f)
         columns = {}
@@ -176,23 +176,23 @@ class JSONReader(Reader):
             dtype = Type.Float if all(value is None or isinstance(value, Real)
                                       for value in json[cname]) else Type.String
             columns[cname] = Column(json[cname], dtype)
-        return Dataframe(columns)
+        return DataFrame(columns)
 
 
 class CSVReader(Reader):
-    def read(self) -> 'Dataframe':
+    def read(self) -> 'DataFrame':
         ...
 
 
 if __name__ == "__main__":
-    df = Dataframe(dict(
+    df = DataFrame(dict(
         a=Column([None, 3.1415], Type.Float),
         b=Column(["a", 2], Type.String),
         c=Column(range(2), Type.Float)
         ))
     print(df)
 
-    df = Dataframe.read_json("data.json")
+    df = DataFrame.read_json("data.json")
     print(df)
 
 for line in df:
